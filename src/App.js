@@ -1,6 +1,13 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from 'react'
+import { withScriptjs, withGoogleMap, GoogleMap, Marker} from 'react-google-maps'
+
+const FarmMap = withScriptjs(withGoogleMap((props) =>
+  <GoogleMap
+    defaultZoom={8}
+    defaultCenter={{lat: 44.6463819, lng: -63.5912759 }}>
+
+  </GoogleMap>
+))
 
 class App extends Component {
   state = {
@@ -20,7 +27,20 @@ class App extends Component {
   }
 
   render() {
-    return (<h1>Hello world</h1>)
+    return (
+      <div className="app-container">
+        <div className="side-bar">
+          <h1>FarmsNS</h1>
+          <p>This is the side bar!</p>
+        </div>
+        <div className="map-container">
+          <FarmMap
+            googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyAq63dggi32I2hHW4Y9yzJjTdEzIbxbRto&v=3.exp&libraries=geometry,drawing,places"
+            loadingElement={<div style={{ height: `100%` }}/>}
+            containerElement={<div  style={{ height: `100%` }} />}
+            mapElement={<div style={{ height: `100%` }} />}></FarmMap>
+        </div>
+      </div>)
   }
 }
 

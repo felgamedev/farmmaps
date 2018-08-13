@@ -1,5 +1,23 @@
 body {
   margin: 0;
   padding: 0;
+  width: 100%;
   font-family: sans-serif;
+}
+
+.app-container {
+  display: flex;
+  height: 100%;
+}
+
+.side-bar {
+  font: sans-serif;
+  color: white;
+  background-color: #0045b8 ;
+  width: 20%;
+  min-height: 800px;
+}
+
+.map-container {
+  flex-grow: 1;
 }
