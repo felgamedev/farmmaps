@@ -5,7 +5,8 @@ import ListViewItem from './components/ListViewItem'
 const FarmMap = withScriptjs(withGoogleMap((props) =>
   <GoogleMap
     defaultZoom={8}
-    defaultCenter={{lat: 44.6463819, lng: -63.5912759 }}>
+    defaultCenter={{lat: 44.6463819, lng: -63.5912759 }}
+    center={props.centerMap}>
     {props.shownLocations.map(location => <Marker key={location.title} title={location.title} position={location.position}/>)}
   </GoogleMap>
 ))
@@ -24,7 +25,10 @@ class App extends Component {
       { title: "Cosman & Whidden honey", position: { lat: 45.0805578, lng: -64.4085428 } },
       { title: "Terra Beata", position: { lat: 44.3882738, lng: -64.2561627 } }
     ],
-    shownLocations: []
+    shownLocations: [],
+    selectedLocation: null,
+    mapCenterPosition: null,
+    defaultCenter: {lat: 44.6463819, lng: -63.5912759 }
   }
 
   componentWillMount(){
@@ -33,8 +37,16 @@ class App extends Component {
     for(let index in this.state.allLocations){
       all.push(this.state.allLocations[index])
     }
+    this.setState(state => ({
+      shownLocations: all,
+      mapCenterPosition: this.state.defaultCenter
+    }))
+  }
+
+  selectLocation = (location) => {
     this.setState({
-      shownLocations: all
+      selectedLocation: location,
+      mapCenterPosition: location.position
     })
   }
 
@@ -53,6 +65,7 @@ class App extends Component {
             containerElement={<div  style={{ height: `100%` }} />}
             mapElement={<div style={{ height: `100%` }} />}
             shownLocations={this.state.shownLocations}
+            centerMap={this.state.mapCenterPosition}
             ></FarmMap>
         </div>
       </div>)
