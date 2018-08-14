@@ -21,3 +21,13 @@ body {
 .map-container {
   flex-grow: 1;
 }
+
+.list-view-item {
+  padding: 1em;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+
+.selected {
+  background-color: #0015f8;
+}

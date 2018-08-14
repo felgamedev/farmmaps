@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { withScriptjs, withGoogleMap, GoogleMap, Marker} from 'react-google-maps'
+import ListViewItem from './components/ListViewItem'
 
 const FarmMap = withScriptjs(withGoogleMap((props) =>
   <GoogleMap
@@ -43,7 +44,7 @@ class App extends Component {
         <div className="side-bar">
           <h1>FarmsNS</h1>
           <p>This is the side bar!</p>
-          {this.state.shownLocations.map(location => (<div key={location.title}>{location.title}</div>))}
+          {this.state.shownLocations.map(location => (<ListViewItem location={location} selected={location === this.state.selectedLocation} selectLocation={this.selectLocation}/>))}
         </div>
         <div className="map-container">
           <FarmMap
