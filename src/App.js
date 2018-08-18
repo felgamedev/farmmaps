@@ -56,7 +56,7 @@ class App extends Component {
         <div className="side-bar">
           <h1>FarmsNS</h1>
           <p>This is the side bar!</p>
-          {this.state.shownLocations.map(location => (<ListViewItem location={location} selected={location === this.state.selectedLocation} selectLocation={this.selectLocation}/>))}
+          {this.state.shownLocations.map(location => (<ListViewItem key={location.title} location={location} selected={location === this.state.selectedLocation} selectLocation={this.selectLocation}/>))}
         </div>
         <div className="map-container">
           <FarmMap
