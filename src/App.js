@@ -7,7 +7,7 @@ const FarmMap = withScriptjs(withGoogleMap((props) =>
     defaultZoom={8}
     defaultCenter={{lat: 44.6463819, lng: -63.5912759 }}
     center={props.centerMap}>
-    {props.shownLocations.map(location => <Marker key={location.title} title={location.title} position={location.position}/>)}
+    {props.shownLocations.map(location => <Marker key={location.title} title={location.title} position={location.position} onClick={() => props.onMarkerClicked(location)}/>)}
   </GoogleMap>
 ))
 
@@ -50,13 +50,38 @@ class App extends Component {
     })
   }
 
+  deselectLocation = () => {
+    this.setState({
+      selectedLocation: null
+    })
+  }
+
+  onListViewItemClicked= (location) => {
+    if(this.state.selectedLocation === location){
+      this.deselectLocation();
+      return
+    }
+    this.selectLocation(location)
+  }
+
+  onMarkerClicked = (location) => {
+    // Marker specific changes go here
+    if(this.state.selectedLocation === location){
+      // TODO implement info window
+      //this.toggleInfoWindow();
+    } else {
+      this.selectLocation(location)
+    }
+
+  }
+
   render() {
     return (
       <div className="app-container">
         <div className="side-bar">
           <h1>FarmsNS</h1>
           <p>This is the side bar!</p>
-          {this.state.shownLocations.map(location => (<ListViewItem key={location.title} location={location} selected={location === this.state.selectedLocation} selectLocation={this.selectLocation}/>))}
+          {this.state.shownLocations.map(location => (<ListViewItem key={location.title} location={location} selected={location === this.state.selectedLocation} selectLocation={this.onListViewItemClicked}/>))}
         </div>
         <div className="map-container">
           <FarmMap
@@ -66,6 +91,7 @@ class App extends Component {
             mapElement={<div style={{ height: `100%` }} />}
             shownLocations={this.state.shownLocations}
             centerMap={this.state.mapCenterPosition}
+            onMarkerClicked={this.onMarkerClicked}
             ></FarmMap>
         </div>
       </div>)
