@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { withScriptjs, withGoogleMap, GoogleMap, Marker} from 'react-google-maps'
 import ListViewItem from './components/ListViewItem'
+import escapeRegExp from 'escape-string-regexp'
 
 const FarmMap = withScriptjs(withGoogleMap((props) =>
   <GoogleMap
@@ -13,6 +14,7 @@ const FarmMap = withScriptjs(withGoogleMap((props) =>
 
 class App extends Component {
   state = {
+    queryValue: "",
     allLocations: [
       { title: "Urban Roots", position: { lat: 44.6463819, lng: -63.5912759 } },
       { title: "Meander River Farm and Brewery", position: { lat: 45.0050258, lng: -63.9284117 } },
@@ -74,13 +76,27 @@ class App extends Component {
 
   }
 
+  onQueryChange = (event) => {
+    this.setState({
+      queryValue: event.target.value
+    })
+  }
+
   render() {
+    let shownLocations
+    if(this.state.queryValue){
+      let match = new RegExp(escapeRegExp(this.state.queryValue), 'i')
+      shownLocations = this.state.allLocations.filter((location) => match.test(location.title))
+    } else {
+      shownLocations = this.state.allLocations
+    }
+
     return (
       <div className="app-container">
         <div className="side-bar">
           <h1>FarmsNS</h1>
-          <p>This is the side bar!</p>
-          {this.state.shownLocations.map(location => (<ListViewItem key={location.title} location={location} selected={location === this.state.selectedLocation} selectLocation={this.onListViewItemClicked}/>))}
+          <input type="text" value={this.state.queryValue} onChange={(e) => this.onQueryChange(e)} />
+          {shownLocations.map(location => (<ListViewItem key={location.title} location={location} selected={location === this.state.selectedLocation} selectLocation={this.onListViewItemClicked}/>))}
         </div>
         <div className="map-container">
           <FarmMap
