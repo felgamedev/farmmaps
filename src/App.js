@@ -17,7 +17,6 @@ class App extends Component {
       { title: "Urban Roots", position: { lat: 44.6463819, lng: -63.5912759 } },
       { title: "Meander River Farm and Brewery", position: { lat: 45.0050258, lng: -63.9284117 } },
       { title: "Meadowbrook Meat Market", position: { lat: 45.0716169, lng: -64.7369145 } },
-      { title: "Elmsdale", position: { lat: 44.6463819, lng: -63.5912759 } },
       { title: "Martock Glen", position: { lat: 44.965728,lng: -64.1370036 } },
       { title: "Fox Hill Cheese House", position: { lat: 45.1124797, lng: -64.4008356 } },
       { title: "Northumberlamb Lamb Co-op", position: { lat: 45.3894693,lng: -63.2487016 } },
