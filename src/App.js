@@ -76,27 +76,39 @@ class App extends Component {
 
   }
 
+  // Update the state to match any query change
   onQueryChange = (event) => {
     this.setState({
       queryValue: event.target.value
     })
+
+    // Update filters
+    this.filterLocations(event.target.value)
+  }
+
+  filterLocations(value){
+    let shownLocations
+    if(value){
+      let match = new RegExp(escapeRegExp(value), 'i')
+      shownLocations = this.state.allLocations.filter((location) => match.test(location.title))
+    } else if(value === ""){
+      shownLocations = this.state.allLocations
+    }
+
+    this.setState({
+      shownLocations: shownLocations
+    })
   }
 
   render() {
-    let shownLocations
-    if(this.state.queryValue){
-      let match = new RegExp(escapeRegExp(this.state.queryValue), 'i')
-      shownLocations = this.state.allLocations.filter((location) => match.test(location.title))
-    } else {
-      shownLocations = this.state.allLocations
-    }
+
 
     return (
       <div className="app-container">
         <div className="side-bar">
           <h1>FarmsNS</h1>
           <input type="text" value={this.state.queryValue} onChange={(e) => this.onQueryChange(e)} />
-          {shownLocations.map(location => (<ListViewItem key={location.title} location={location} selected={location === this.state.selectedLocation} selectLocation={this.onListViewItemClicked}/>))}
+          {this.state.shownLocations.map(location => (<ListViewItem key={location.title} location={location} selected={location === this.state.selectedLocation} selectLocation={this.onListViewItemClicked}/>))}
         </div>
         <div className="map-container">
           <FarmMap
