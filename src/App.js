@@ -38,6 +38,7 @@ class App extends Component {
     for(let index in this.state.allLocations){
       all.push(this.state.allLocations[index])
     }
+    // Copy this initial list to the shownLocations state too
     this.setState(state => ({
       shownLocations: all,
       mapCenterPosition: this.state.defaultCenter
@@ -57,6 +58,7 @@ class App extends Component {
     })
   }
 
+  // Logic for selecting a location from the ListView
   onListViewItemClicked= (location) => {
     if(this.state.selectedLocation === location){
       this.deselectLocation();
@@ -65,6 +67,7 @@ class App extends Component {
     this.selectLocation(location)
   }
 
+  // Logic for selecting a location from the marker
   onMarkerClicked = (location) => {
     // Marker specific changes go here
     if(this.state.selectedLocation === location){
