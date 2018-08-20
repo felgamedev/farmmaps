@@ -59,7 +59,7 @@ class App extends Component {
   }
 
   // Logic for selecting a location from the ListView
-  onListViewItemClicked= (location) => {
+  onListViewItemFocused= (location) => {
     if(this.state.selectedLocation === location){
       this.deselectLocation();
       return
@@ -89,6 +89,7 @@ class App extends Component {
     this.filterLocations(event.target.value)
   }
 
+  // Update the UI by changing the shownLocations. Takes in a string as state may be being set asynchronously
   filterLocations(value){
     let shownLocations
     if(value){
@@ -111,7 +112,7 @@ class App extends Component {
         <div className="side-bar">
           <h1>FarmsNS</h1>
           <input type="text" value={this.state.queryValue} onChange={(e) => this.onQueryChange(e)} />
-          {this.state.shownLocations.map(location => (<ListViewItem key={location.title} location={location} selected={location === this.state.selectedLocation} selectLocation={this.onListViewItemClicked}/>))}
+          {this.state.shownLocations.map(location => (<ListViewItem key={location.title} location={location} selected={location === this.state.selectedLocation} selectLocation={this.onListViewItemFocused}/>))}
         </div>
         <div className="map-container">
           <FarmMap
