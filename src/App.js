@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { withScriptjs, withGoogleMap, GoogleMap, Marker} from 'react-google-maps'
+import { withScriptjs, withGoogleMap, GoogleMap, Marker, InfoWindow} from 'react-google-maps'
 import ListViewItem from './components/ListViewItem'
 import escapeRegExp from 'escape-string-regexp'
 
@@ -8,7 +8,7 @@ const FarmMap = withScriptjs(withGoogleMap((props) =>
     defaultZoom={8}
     defaultCenter={{lat: 44.6463819, lng: -63.5912759 }}
     center={props.centerMap}>
-    {props.shownLocations.map(location => <Marker key={location.title} title={location.title} position={location.position} onClick={() => props.onMarkerClicked(location)}/>)}
+    {props.markers}
   </GoogleMap>
 ))
 
@@ -29,7 +29,8 @@ class App extends Component {
     shownLocations: [],
     selectedLocation: null,
     mapCenterPosition: null,
-    defaultCenter: {lat: 44.6463819, lng: -63.5912759 }
+    defaultCenter: {lat: 44.6463819, lng: -63.5912759 },
+    infoWindowOpen: false
   }
 
   componentWillMount(){
@@ -48,13 +49,15 @@ class App extends Component {
   selectLocation = (location) => {
     this.setState({
       selectedLocation: location,
-      mapCenterPosition: location.position
+      mapCenterPosition: location.position,
+      infoWindowOpen: true
     })
   }
 
   deselectLocation = () => {
     this.setState({
-      selectedLocation: null
+      selectedLocation: null,
+      infoWindowOpen: false
     })
   }
 
@@ -71,8 +74,7 @@ class App extends Component {
   onMarkerClicked = (location) => {
     // Marker specific changes go here
     if(this.state.selectedLocation === location){
-      // TODO implement info window
-      //this.toggleInfoWindow();
+      if(!this.state.infoWindowOpen) this.toggleInfoWindow();
     } else {
       this.selectLocation(location)
     }
@@ -104,14 +106,34 @@ class App extends Component {
     })
   }
 
+  toggleInfoWindow = () => {
+    this.setState(state => ({
+      infoWindowOpen: !state.infoWindowOpen
+    }))
+
+  }
+
   render() {
-
-
+    let {shownLocations, queryValue, mapCenterPosition, infoWindowOpen, selectedLocation} = this.state
+    let markers = []
+    for(let i = 0; i < shownLocations.length; i++){
+      markers.push(<Marker key={shownLocations[i].title}
+        title={shownLocations[i].title}
+        position={shownLocations[i].position}
+        onClick={() => this.onMarkerClicked(shownLocations[i])}>
+        {(infoWindowOpen && selectedLocation === shownLocations[i]) &&
+            <InfoWindow onCloseClick={this.toggleInfoWindow}>
+              <div>
+                <h3>{shownLocations[i].title}</h3>
+              </div>
+            </InfoWindow>}
+      </ Marker>)
+    }
     return (
       <div className="app-container">
         <div className="side-bar">
           <h1>FarmsNS</h1>
-          <input type="text" value={this.state.queryValue} onChange={(e) => this.onQueryChange(e)} />
+          <input type="text" value={queryValue} onChange={(e) => this.onQueryChange(e)} />
           {this.state.shownLocations.map(location => (<ListViewItem key={location.title} location={location} selected={location === this.state.selectedLocation} selectLocation={this.onListViewItemFocused}/>))}
         </div>
         <div className="map-container">
@@ -120,9 +142,10 @@ class App extends Component {
             loadingElement={<div style={{ height: `100%` }}/>}
             containerElement={<div  style={{ height: `100%` }} />}
             mapElement={<div style={{ height: `100%` }} />}
-            shownLocations={this.state.shownLocations}
-            centerMap={this.state.mapCenterPosition}
+            shownLocations={shownLocations}
+            centerMap={mapCenterPosition}
             onMarkerClicked={this.onMarkerClicked}
+            markers={markers}
             ></FarmMap>
         </div>
       </div>)
