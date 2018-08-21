@@ -24,15 +24,13 @@ class App extends Component {
   state = {
     queryValue: "",
     allLocations: [
-      { title: "Urban Roots", position: { lat: 44.6463819, lng: -63.5912759 } },
-      { title: "Meander River Farm and Brewery", position: { lat: 45.0050258, lng: -63.9284117 } },
-      { title: "Meadowbrook Meat Market", position: { lat: 45.0716169, lng: -64.7369145 } },
-      { title: "Martock Glen", position: { lat: 44.965728,lng: -64.1370036 } },
-      { title: "Fox Hill Cheese House", position: { lat: 45.1124797, lng: -64.4008356 } },
-      { title: "Northumberlamb Lamb Co-op", position: { lat: 45.3894693,lng: -63.2487016 } },
-      { title: "Holmestead Cheese", position: { lat: 44.9861486, lng: -64.7878241} },
-      { title: "Cosman & Whidden honey", position: { lat: 45.0805578, lng: -64.4085428 } },
-      { title: "Terra Beata", position: { lat: 44.3882738, lng: -64.2561627 } }
+      { title: "Battery Park Beer Bar", position: { lat: 44.6668493, lng: -63.5699491 }, venueId: '567579ee498e2f30a8cac694' },
+      { title: "Jost Vineyards", position: { lat: 45.796224, lng: -63.377246 }, venueId: '4be8181d947820a19271b4db' },
+      { title: "Blomidon Estate Winery", position: { lat: 45.1570488, lng: -64.3926467 }, venueId: '4b76ea9bf964a520466a2ee3' },
+      { title: "Avondale Sky Winery", position: { lat: 45.1124797, lng: -64.4008356 }, venueId: '503111bae4b0265f8c49d742' },
+      { title: "Gasperau Vineyards", position: { lat: 45.0688838,lng: -64.3592938 }, venueId: '4be6e0bb910020a1a9b5d414' },
+      { title: "Spindrift Brewing", position: { lat: 44.7141604, lng: -63.5852723}, venueId: '573c6c35498e9c48598a1ac7' },
+      { title: "Muwin Estates Wines", position: { lat: 44.8299832, lng: -64.5139131}, venueId: '4cf1588ae9425481f6bd69c5' },
     ],
     shownLocations: [],
     selectedLocation: null,
@@ -142,7 +140,8 @@ class App extends Component {
     return (
       <div className="app-container">
         <div className="side-bar">
-          <h1>FarmsNS</h1>
+          <h1>NS Made</h1>
+          <p>Beer and Wines</p>
           <input type="text" value={queryValue} onChange={(e) => this.onQueryChange(e)} />
           {this.state.shownLocations.map(location => (<ListViewItem key={location.title} location={location} selected={location === this.state.selectedLocation} selectLocation={this.onListViewItemFocused}/>))}
         </div>
