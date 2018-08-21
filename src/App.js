@@ -3,6 +3,14 @@ import { withScriptjs, withGoogleMap, GoogleMap, Marker, InfoWindow} from 'react
 import ListViewItem from './components/ListViewItem'
 import escapeRegExp from 'escape-string-regexp'
 
+const fourSquareConfig = {
+  'secrets': {
+    'clientId': 'N3XZR40E5SSOTRPFD4RGBATEIBLPNHBUAUBN0LFXZCIQCW21',
+    'clientSecret' : 'T2PUDE4YKR03JDN5BD5AS4KW42IOHH2213W4WNKZ1MHG0GVT',
+    'redirectUrl': 'REDIRECT_URL'
+  }
+}
+
 const FarmMap = withScriptjs(withGoogleMap((props) =>
   <GoogleMap
     defaultZoom={8}
@@ -45,6 +53,8 @@ class App extends Component {
       mapCenterPosition: this.state.defaultCenter
     }))
   }
+
+
 
   selectLocation = (location) => {
     this.setState({
