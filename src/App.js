@@ -20,20 +20,21 @@ const FarmMap = withScriptjs(withGoogleMap((props) =>
   </GoogleMap>
 ))
 
-const MapInfoWindow = (props) =>
-    <InfoWindow>
-      <div>
-        <div className="venue-data">
-
-        </div>
-        <div className="similar-venue-data">
-          {props.location && <h3>{props.location.title}</h3>}
-          {props.similarVenueData && <div>I have similarVenueData</div>}
-          {(props.similarVenueData && (props.similarVenueData.similarVenues.count > 0)) && <div>More than 0!</div>}
-        </div>
-
+const MapInfoWindow = (props) => {
+  return (<InfoWindow>
+    <div>
+      <div className="venue-data">
+        {props.venueData && <div className="venue-title"><h2><a href={`https://foursquare.com/v/${props.location.venueId}`}>{props.venueData.venue.name}</a></h2></div>}
+        {props.venueData && <div className="venue-description"><span className="venue-rating">Average rating: {props.venueData.venue.rating}</span></div>}
+        {props.venueData && <address>
+          <p>{props.venueData.venue.location.address}, {props.venueData.venue.location.city}</p>
+        </address>}
+        {props.venueData && <p>{props.venueData.venue.contact.formattedPhone}</p>}
       </div>
-    </InfoWindow>
+
+    </div>
+    </InfoWindow>)
+}
 
 class App extends Component {
   state = {
@@ -52,8 +53,7 @@ class App extends Component {
     mapCenterPosition: null,
     defaultCenter: {lat: 44.6463819, lng: -63.5912759 },
     infoWindowOpen: false,
-    venueFromFoursquare: null,
-    similarVenueData: null
+    venueFromFoursquare: null
   }
 
   // When a location is selected, load up similar locations to state for InfoWindow to reference
@@ -61,16 +61,12 @@ class App extends Component {
     // Get general info about the venue
     fetch(`https://api.foursquare.com/v2/venues/${location.venueId}?&client_id=${fourSquareConfig.secrets.clientId}&client_secret=${fourSquareConfig.secrets.clientSecret}&v=20180821`)
     .then(res => res.json())
-    .then(data => this.setState({
-      venueFromFoursquare: data.response
-    }))
+    .then(data => this.setState({venueFromFoursquare: data.response}))
 
-    // Get data about similar locations
-    fetch(`https://api.foursquare.com/v2/venues/${location.venueId}/similar/?&client_id=${fourSquareConfig.secrets.clientId}&client_secret=${fourSquareConfig.secrets.clientSecret}&v=20180821`)
-    .then(res => res.json())
-    .then(data => this.setState({
-      similarVenueData: data.response
-    }))
+    // Get a photo if there is one
+    // fetch(`https://api.foursquare.com/v2/venues/${location.venueId}/photos?&client_id=${fourSquareConfig.secrets.clientId}&client_secret=${fourSquareConfig.secrets.clientSecret}&v=20180821`)
+    // .then(res => res.json())
+    // .then()
   }
 
   componentWillMount(){
