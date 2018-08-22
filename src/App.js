@@ -23,7 +23,7 @@ const FarmMap = withScriptjs(withGoogleMap((props) =>
 const MapInfoWindow = (props) => {
   return (<InfoWindow>
     <div>
-      <div className="venue-data">
+      <div className="venue-data" tabIndex="1">
         {props.venueData && <div className="venue-title"><h2><a href={`https://foursquare.com/v/${props.location.venueId}`}>{props.venueData.venue.name}</a></h2></div>}
         {props.venueData && <div className="venue-description"><span className="venue-rating">Average rating: {props.venueData.venue.rating}</span></div>}
         {props.venueData && <address>
@@ -106,8 +106,8 @@ class App extends Component {
   }
 
   // Logic for selecting a location from the ListView
-  onListViewItemFocused= (location) => {
-    if(this.state.selectedLocation === location){
+  onListViewItemFocused= (location, fromFocus) => {
+    if(fromFocus && this.state.selectedLocation === location){
       this.deselectLocation();
       return
     }
@@ -115,7 +115,7 @@ class App extends Component {
   }
 
   // Logic for selecting a location from the marker
-  onMarkerClicked = (location) => {
+  onMarkerClicked = (location, fromFocus) => {
     // Marker specific changes go here
     if(this.state.selectedLocation === location){
       this.toggleInfoWindow();
@@ -167,7 +167,7 @@ class App extends Component {
         position={shownLocations[i].position}
         onClick={() => this.onMarkerClicked(shownLocations[i])}>
         {(infoWindowOpen && selectedLocation === shownLocations[i]) &&
-            <MapInfoWindow onCloseClick={this.toggleInfoWindow} location={shownLocations[i]} similarVenueData={this.state.similarVenueData} />}
+            <MapInfoWindow onCloseClick={this.toggleInfoWindow} location={shownLocations[i]} venueData={this.state.venueFromFoursquare}/>}
       </ Marker>)
     }
 
