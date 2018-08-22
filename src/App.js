@@ -82,7 +82,7 @@ class App extends Component {
   onMarkerClicked = (location) => {
     // Marker specific changes go here
     if(this.state.selectedLocation === location){
-      if(!this.state.infoWindowOpen) this.toggleInfoWindow();
+      this.toggleInfoWindow();
     } else {
       this.selectLocation(location)
     }
