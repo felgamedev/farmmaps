@@ -23,6 +23,10 @@ body {
   flex-grow: 1;
 }
 
+#map {
+  height: 100%;
+}
+
 .list-view-item {
   padding: 1em;
   text-transform: capitalize;

@@ -1,5 +1,5 @@
+/* eslint-disable no-undef */
 import React, { Component } from 'react'
-import { withScriptjs, withGoogleMap, GoogleMap, Marker, InfoWindow} from 'react-google-maps'
 import ListViewItem from './components/ListViewItem'
 import escapeRegExp from 'escape-string-regexp'
 
@@ -11,30 +11,24 @@ const fourSquareConfig = {
   }
 }
 
-const FarmMap = withScriptjs(withGoogleMap((props) =>
-  <GoogleMap
-    defaultZoom={8}
-    defaultCenter={{lat: 44.6463819, lng: -63.5912759 }}
-    center={props.centerMap}>
-    {props.markers}
-  </GoogleMap>
-))
+// Global map variable
+var map, markers, bounds, infoWindow
 
-const MapInfoWindow = (props) => {
-  return (<InfoWindow>
-    <div>
-      <div className="venue-data" tabIndex="1">
-        {props.venueData && <div className="venue-title"><h2><a href={`https://foursquare.com/v/${props.location.venueId}`}>{props.venueData.venue.name}</a></h2></div>}
-        {props.venueData && <div className="venue-description"><span className="venue-rating">Average rating: {props.venueData.venue.rating}</span></div>}
-        {props.venueData && <address>
-          <p>{props.venueData.venue.location.address}, {props.venueData.venue.location.city}</p>
-        </address>}
-        {props.venueData && <p>{props.venueData.venue.contact.formattedPhone}</p>}
-      </div>
-
-    </div>
-    </InfoWindow>)
-}
+// const MapInfoWindow = (props) => {
+//   return (<InfoWindow>
+//     <div>
+//       <div className="venue-data" tabIndex="1">
+//         {props.venueData && <div className="venue-title"><h2><a href={`https://foursquare.com/v/${props.location.venueId}`}>{props.venueData.venue.name}</a></h2></div>}
+//         {props.venueData && <div className="venue-description"><span className="venue-rating">Average rating: {props.venueData.venue.rating}</span></div>}
+//         {props.venueData && <address>
+//           <p>{props.venueData.venue.location.address}, {props.venueData.venue.location.city}</p>
+//         </address>}
+//         {props.venueData && <p>{props.venueData.venue.contact.formattedPhone}</p>}
+//       </div>
+//
+//     </div>
+//     </InfoWindow>)
+// }
 
 class App extends Component {
   state = {
@@ -83,6 +77,45 @@ class App extends Component {
       shownLocations: all,
       mapCenterPosition: this.state.defaultCenter
     }))
+  }
+
+  componentDidMount(){
+    map = new google.maps.Map(document.getElementById('map'), {
+          center: this.state.defaultCenter,
+          zoom: 8
+    });
+    infoWindow = new google.maps.InfoWindow();
+    this.updateMarkers();
+  }
+
+  updateMarkers(){
+    let {shownLocations} = this.state
+    let self = this
+    markers = []
+    for(let i = 0; i < shownLocations.length; i++){
+      let marker = new google.maps.Marker({
+        position: shownLocations[i].position,
+        map: map,
+        title: shownLocations[i].title
+      })
+      marker.addListener('click', function(){
+        self.openInfoWindow(this, infoWindow)
+      })
+      markers.push(marker)
+    }
+  }
+
+  updateBounds(){
+
+  }
+
+  openInfoWindow(marker, infoWindow){
+    if(infoWindow.marker !== marker){
+      infoWindow.marker = marker
+      infoWindow.setContent()
+      infoWindow.open(map, marker)
+
+    }
   }
 
   selectLocation = (location) => {
@@ -158,18 +191,7 @@ class App extends Component {
   }
 
   render() {
-    let {shownLocations, queryValue, mapCenterPosition, infoWindowOpen, selectedLocation} = this.state
-    let markers = []
-
-    for(let i = 0; i < shownLocations.length; i++){
-      markers.push(<Marker key={shownLocations[i].title}
-        title={shownLocations[i].title}
-        position={shownLocations[i].position}
-        onClick={() => this.onMarkerClicked(shownLocations[i])}>
-        {(infoWindowOpen && selectedLocation === shownLocations[i]) &&
-            <MapInfoWindow onCloseClick={this.toggleInfoWindow} location={shownLocations[i]} venueData={this.state.venueFromFoursquare}/>}
-      </ Marker>)
-    }
+    let {queryValue} = this.state
 
     return (
       <div className="app-container">
@@ -180,16 +202,8 @@ class App extends Component {
           {this.state.shownLocations.map(location => (<ListViewItem key={location.title} location={location} selected={location === this.state.selectedLocation} selectLocation={this.onListViewItemFocused}/>))}
         </div>
         <div className="map-container">
-          <FarmMap
-            googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyAq63dggi32I2hHW4Y9yzJjTdEzIbxbRto&v=3.exp&libraries=geometry,drawing,places"
-            loadingElement={<div style={{ height: `100%` }}/>}
-            containerElement={<div  style={{ height: `100%` }} />}
-            mapElement={<div style={{ height: `100%` }} />}
-            shownLocations={shownLocations}
-            centerMap={mapCenterPosition}
-            onMarkerClicked={this.onMarkerClicked}
-            markers={markers}
-            ></FarmMap>
+          <div id="map">
+          </div>
         </div>
       </div>)
   }
