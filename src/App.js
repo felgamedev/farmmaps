@@ -116,6 +116,17 @@ class App extends Component {
 
     // create and update bounds for the map
     this.updateBounds()
+
+    // Add window event listener to switch focus to the info window when space bar is pressed
+    document.addEventListener('keydown', function(event){
+      if(event.key === ' '){
+        if(self.state.selectedLocation && self.state.infoWindowOpen){
+          document.getElementById('info-window-heading').focus()
+        }
+        return true
+      }
+      return false
+    })
   }
 
   createMarkers(){
@@ -234,10 +245,10 @@ class App extends Component {
   generateInfoWindowContent(data, location){
     console.log(data);
     let content = (<div>
-        <div className="venue-data">
-          {data && <div className="venue-title"><h2><a href={`https://foursquare.com/v/${location.venueId}`}>{data.venue.name}</a></h2></div>}
-          {data && <div className="venue-description"><span className="venue-rating">Average rating: {data.venue.rating}</span></div>}
-          {data && <address>
+        <div id="info-window-div" className="venue-data">
+          {data && <div className="venue-title"><h2 id="info-window-heading" tabIndex="0"><a href={`https://foursquare.com/v/${location.venueId}`}>{data.venue.name}</a></h2></div>}
+          {data && <div className="venue-description"><span className="venue-rating" tabIndex="0">Average rating: {data.venue.rating}</span></div>}
+          {data && <address tabIndex="0">
             <p>{data.venue.location.address}, {data.venue.location.city}</p>
           </address>}
           {data && <p>{data.venue.contact.formattedPhone}</p>}
