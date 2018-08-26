@@ -1,5 +1,6 @@
 /* eslint-disable no-undef */
 import React, { Component } from 'react'
+import ReactDomServer from 'react-dom/server'
 import ListViewItem from './components/ListViewItem'
 import escapeRegExp from 'escape-string-regexp'
 
@@ -12,6 +13,7 @@ const fourSquareConfig = {
 }
 
 // Global map variable
+var map, markers, bounds, infoWindow, selectedMarker
 
 class App extends Component {
   state = {
@@ -49,6 +51,40 @@ class App extends Component {
       all.push(this.state.allLocations[index])
     }
 
+    // Prefetch all location data from Foursquare to minimize calls
+    let self = this
+    new Promise(function(){
+      for(let i = 0; i < all.length; i++){
+        let location = all[i]
+
+        // Utilize localStorage to save venue data, preventing multiple calls and quota being exceeded
+        if(location.infoWindowContent !== null){
+          console.log("InfoWindowContent already stored in the location... somehow!");
+        } else if(localStorage.getItem(location.venueId) && location.infoWindowContent === null){
+          console.log("InfoWindowContent saved in local storage, no need to call the fetch on Foursquare");
+          let savedData = localStorage.getItem(location.venueId)
+          // Set the location's infoWindow content from saved storage
+          location.infoWindowContent = savedData
+
+        } else {
+          console.log("InfoWindowContent not found in localStorage, fetching now from Foursquare");
+          fetch(`https://api.foursquare.com/v2/venues/${location.venueId}?&client_id=${fourSquareConfig.secrets.clientId}&client_secret=${fourSquareConfig.secrets.clientSecret}&v=20180821`)
+          .then(res => res.json())
+          .then(data => {
+            let locationDataToJsx = self.generateInfoWindowContent(data.response, location)
+            let savedData = ReactDomServer.renderToString(locationDataToJsx)
+            location.infoWindowContent = savedData
+            // Debug
+            console.log("Saving to localStorage");
+            localStorage.setItem(location.venueId, savedData)
+          })
+        }
+      }
+    })
+    .then(() => this.setState({
+      allLocations: all
+    }))
+
     // Copy this initial list to the shownLocations state too
     this.setState(state => ({
       allLocations: all,
@@ -62,8 +98,21 @@ class App extends Component {
           center: this.state.defaultCenter,
           zoom: 8
     });
-    infoWindow = new google.maps.InfoWindow();
-    this.updateMarkers();
+
+    // Create new InfoWindow instance
+    infoWindow = new google.maps.InfoWindow()
+
+    let self = this
+    // attach a Listener for closeclick event
+    infoWindow.addListener('closeclick', () => {
+      self.setState({
+        infoWindowOpen: false
+      })
+    })
+
+    // Initialize the array of markers
+    this.updateMarkers()
+    selectedMarker = null
   }
 
   updateMarkers(){
@@ -77,7 +126,8 @@ class App extends Component {
         title: shownLocations[i].title
       })
       marker.addListener('click', function(){
-        self.openInfoWindow(this, infoWindow)
+        self.onMarkerClicked(marker)
+        // self.openInfoWindow(this, infoWindow)
       })
       markers.push(marker)
     }
@@ -87,15 +137,6 @@ class App extends Component {
 
   }
 
-  openInfoWindow(marker, infoWindow){
-    if(infoWindow.marker !== marker){
-      infoWindow.marker = marker
-      infoWindow.setContent()
-      infoWindow.open(map, marker)
-
-    }
-  }
-
   selectLocation = (location) => {
     this.setState({
       selectedLocation: location,
@@ -103,8 +144,17 @@ class App extends Component {
       infoWindowOpen: true
     })
 
-    // Prevent calls during building of main app
-    this.getFourSquareData(location)
+    // Grab the marker if it isn't already selected by being clicked
+    if(selectedMarker === null){
+      selectedMarker = this.getMarkerFromLocation(location)
+    }
+
+    // Open up the infoWindow
+    console.log();
+    selectedMarker.setAnimation(google.maps.Animation.BOUNCE)
+    infoWindow.setContent(location.infoWindowContent)
+    infoWindow.open(map, selectedMarker)
+    infoWindow.open(map, selectedMarker)
   }
 
   deselectLocation = () => {
@@ -114,26 +164,74 @@ class App extends Component {
       venueFromFoursquare: null,
       similarVenueData: null
     })
+
+    // Null the selected marker for conditional use when new marker selected
+    selectedMarker.setAnimation(null)
+    selectedMarker = null
   }
 
   // Logic for selecting a location from the ListView
-  onListViewItemFocused= (location, fromFocus) => {
-    if(fromFocus && this.state.selectedLocation === location){
+  onListViewItemFocused= (location, event) => {
+    if(event.type === 'focus' && this.state.selectedLocation === location){
+
       this.deselectLocation();
       return
+    } else if(event.type === 'click')
+    //Cancel animation on previously selected marker
+    if(selectedMarker !== null){
+      selectedMarker.setAnimation(null)
     }
+    // Save the marker
+    selectedMarker = this.getMarkerFromLocation(location)
+
     this.selectLocation(location)
   }
 
   // Logic for selecting a location from the marker
-  onMarkerClicked = (location, fromFocus) => {
+  onMarkerClicked = (marker) => {
+    let location = this.getLocationFromMarker(marker)
     // Marker specific changes go here
     if(this.state.selectedLocation === location){
       this.toggleInfoWindow();
     } else {
+      // Save the marker for infoWindow to use
+      selectedMarker = marker
       this.selectLocation(location)
     }
+  }
 
+  generateInfoWindowContent(data, location){
+    console.log(data);
+    let content = (<div>
+        <div className="venue-data">
+          {data && <div className="venue-title"><h2><a href={`https://foursquare.com/v/${location.venueId}`}>{data.venue.name}</a></h2></div>}
+          {data && <div className="venue-description"><span className="venue-rating">Average rating: {data.venue.rating}</span></div>}
+          {data && <address>
+            <p>{data.venue.location.address}, {data.venue.location.city}</p>
+          </address>}
+          {data && <p>{data.venue.contact.formattedPhone}</p>}
+        </div>
+    </div>)
+
+    return content
+
+  }
+
+  getMarkerFromLocation(location){
+    for(let i = 0; i < markers.length; i++){
+      let markerLat = Number(markers[i].getPosition().lat().toFixed(7))
+      let markerLng = Number(markers[i].getPosition().lng().toFixed(7))
+      if(location.position.lat === markerLat && location.position.lng === markerLng){
+        return markers[i]
+      }
+    }
+  }
+
+  getLocationFromMarker(marker){
+    let markerLat = Number(marker.getPosition().lat().toFixed(7))
+    let markerLng = Number(marker.getPosition().lng().toFixed(7))
+    let location = this.state.allLocations.filter(loc => (markerLat === loc.position.lat && markerLng === loc.position.lng))
+    return location[0]
   }
 
   // Update the state to match any query change
@@ -165,11 +263,10 @@ class App extends Component {
     this.setState(state => ({
       infoWindowOpen: !state.infoWindowOpen
     }))
-
   }
 
   render() {
-    let {queryValue} = this.state
+    let {queryValue, venueFromFoursquare} = this.state
 
     return (
       <div className="app-container">
