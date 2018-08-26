@@ -60,23 +60,19 @@ class App extends Component {
         if(location.infoWindowContent !== null){
           console.log("InfoWindowContent already stored in the location... somehow!");
         } else if(localStorage.getItem(location.venueId) && location.infoWindowContent === null){
-          console.log("InfoWindowContent saved in local storage, no need to call the fetch on Foursquare");
           let savedData = localStorage.getItem(location.venueId)
           // Set the location's infoWindow content from saved storage
           location.infoWindowContent = savedData
-
         } else {
-          console.log("InfoWindowContent not found in localStorage, fetching now from Foursquare");
           fetch(`https://api.foursquare.com/v2/venues/${location.venueId}?&client_id=${fourSquareConfig.secrets.clientId}&client_secret=${fourSquareConfig.secrets.clientSecret}&v=20180821`)
           .then(res => res.json())
           .then(data => {
             let locationDataToJsx = self.generateInfoWindowContent(data.response, location)
             let savedData = ReactDomServer.renderToString(locationDataToJsx)
             location.infoWindowContent = savedData
-            // Debug
-            console.log("Saving to localStorage");
             localStorage.setItem(location.venueId, savedData)
           })
+          .catch((e) => console.log(e))
         }
       }
     })
