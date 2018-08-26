@@ -330,7 +330,7 @@ class App extends Component {
         <div className="side-bar">
           <h1>NS Made</h1>
           <p>Beer and Wines</p>
-          <input type="text" value={queryValue} onChange={(e) => this.onQueryChange(e)} />
+          <div><label >Filter: <input type="text" value={queryValue} onChange={(e) => this.onQueryChange(e)} /></label></div>
           {this.state.shownLocations.map(location => (<ListViewItem key={location.title} location={location} selected={location === this.state.selectedLocation} onListViewFocused={this.onListViewItemFocused}/>))}
         </div>
         <div className="map-container">
