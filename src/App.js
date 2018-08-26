@@ -29,7 +29,6 @@ class App extends Component {
     ],
     shownLocations: [],
     selectedLocation: null,
-    mapCenterPosition: null,
     defaultCenter: {lat: 44.6463819, lng: -63.5912759 },
     infoWindowOpen: false,
     venueFromFoursquare: null
@@ -111,36 +110,56 @@ class App extends Component {
     })
 
     // Initialize the array of markers
-    this.updateMarkers()
+    this.createMarkers()
+    this.updateMarkers(this.state.shownLocations)
     selectedMarker = null
+
+    // create and update bounds for the map
+    this.updateBounds()
   }
 
-  updateMarkers(){
-    let {shownLocations} = this.state
+  createMarkers(){
     let self = this
+    let {allLocations} = this.state
     markers = []
-    for(let i = 0; i < shownLocations.length; i++){
+    for(let i = 0; i < allLocations.length; i++){
       let marker = new google.maps.Marker({
-        position: shownLocations[i].position,
-        map: map,
-        title: shownLocations[i].title
+        position: allLocations[i].position,
+        map: null,
+        title: allLocations[i].title
       })
       marker.addListener('click', function(){
         self.onMarkerClicked(marker)
-        // self.openInfoWindow(this, infoWindow)
       })
       markers.push(marker)
     }
   }
 
-  updateBounds(){
+  updateMarkers(shownLocations){
+    let { allLocations } = this.state
+    // Set the shownLocations map
+    for(let i = 0; i < allLocations.length; i++){
+      if(shownLocations.includes(allLocations[i])){
+        markers[i].setMap(map)
+      } else {
+        markers[i].setMap(null)
+      }
+    }
+  }
 
+  updateBounds(){
+    bounds = new google.maps.LatLngBounds()
+    for(let i = 0; i < markers.length; i++){
+      if(markers[i].getMap !== null){
+        bounds.extend(markers[i].position)
+      }
+    }
+    map.fitBounds(bounds)
   }
 
   selectLocation = (location) => {
     this.setState({
       selectedLocation: location,
-      mapCenterPosition: location.position,
       infoWindowOpen: true
     })
 
@@ -149,21 +168,26 @@ class App extends Component {
       selectedMarker = this.getMarkerFromLocation(location)
     }
 
+    // Center the map on the new location
+    map.setCenter(location.position)
     // Open up the infoWindow
-    console.log();
     selectedMarker.setAnimation(google.maps.Animation.BOUNCE)
     infoWindow.setContent(location.infoWindowContent)
-    infoWindow.open(map, selectedMarker)
     infoWindow.open(map, selectedMarker)
   }
 
   deselectLocation = () => {
+    if(this.state.infoWindowOpen) infoWindow.close()
+
     this.setState({
       selectedLocation: null,
       infoWindowOpen: false,
       venueFromFoursquare: null,
       similarVenueData: null
     })
+
+    // Reset map center on bounds
+    map.fitBounds(bounds)
 
     // Null the selected marker for conditional use when new marker selected
     selectedMarker.setAnimation(null)
@@ -172,11 +196,15 @@ class App extends Component {
 
   // Logic for selecting a location from the ListView
   onListViewItemFocused= (location, event) => {
-    if(event.type === 'focus' && this.state.selectedLocation === location){
-
+    // Cancel focus event if the mouse was clicked, causing a double fire
+    if(event.type === 'mousedown'){
+      event.preventDefault()
+    }
+    if(this.state.selectedLocation === location){
+      // location deselected by clicking it twice on the ListViewItem
       this.deselectLocation();
       return
-    } else if(event.type === 'click')
+    }
     //Cancel animation on previously selected marker
     if(selectedMarker !== null){
       selectedMarker.setAnimation(null)
@@ -189,12 +217,15 @@ class App extends Component {
 
   // Logic for selecting a location from the marker
   onMarkerClicked = (marker) => {
+    // Get a reference to the location
     let location = this.getLocationFromMarker(marker)
+
     // Marker specific changes go here
     if(this.state.selectedLocation === location){
-      this.toggleInfoWindow();
+      this.toggleInfoWindow()
     } else {
-      // Save the marker for infoWindow to use
+      // If its not the first marker you've clicked, deselect the last one
+      if(selectedMarker !== null) this.deselectLocation()
       selectedMarker = marker
       this.selectLocation(location)
     }
@@ -251,15 +282,25 @@ class App extends Component {
       let match = new RegExp(escapeRegExp(value), 'i')
       shownLocations = this.state.allLocations.filter((location) => match.test(location.title))
     } else if(value === ""){
+      console.log("Showing all locations");
       shownLocations = this.state.allLocations
     }
 
+    this.updateMarkers(shownLocations)
     this.setState({
       shownLocations: shownLocations
     })
+
+    this.updateBounds()
   }
 
   toggleInfoWindow = () => {
+    if(this.state.infoWindowOpen){
+      infoWindow.close()
+    } else {
+      infoWindow.open(map, selectedMarker)
+    }
+
     this.setState(state => ({
       infoWindowOpen: !state.infoWindowOpen
     }))
@@ -274,7 +315,7 @@ class App extends Component {
           <h1>NS Made</h1>
           <p>Beer and Wines</p>
           <input type="text" value={queryValue} onChange={(e) => this.onQueryChange(e)} />
-          {this.state.shownLocations.map(location => (<ListViewItem key={location.title} location={location} selected={location === this.state.selectedLocation} selectLocation={this.onListViewItemFocused}/>))}
+          {this.state.shownLocations.map(location => (<ListViewItem key={location.title} location={location} selected={location === this.state.selectedLocation} onListViewFocused={this.onListViewItemFocused}/>))}
         </div>
         <div className="map-container">
           <div id="map">
