@@ -31,7 +31,7 @@ class App extends Component {
     selectedLocation: null,
     defaultCenter: {lat: 44.6463819, lng: -63.5912759 },
     infoWindowOpen: false,
-    venueFromFoursquare: null
+    fourSquareFail: false
   }
 
   // When a location is selected, load up similar locations to state for InfoWindow to reference
@@ -67,6 +67,11 @@ class App extends Component {
           fetch(`https://api.foursquare.com/v2/venues/${location.venueId}?&client_id=${fourSquareConfig.secrets.clientId}&client_secret=${fourSquareConfig.secrets.clientSecret}&v=20180821`)
           .then(res => res.json())
           .then(data => {
+            if(data.meta.code === 400 || data.meta.code === 429){
+              self.setState({
+                fourSquareFail: true
+              })
+            }
             let locationDataToJsx = self.generateInfoWindowContent(data.response, location)
             let savedData = ReactDomServer.renderToString(locationDataToJsx)
             location.infoWindowContent = savedData
@@ -74,6 +79,7 @@ class App extends Component {
           })
           .catch((e) => console.log(e))
         }
+        if(self.state.fourSquareFail) console.log("Failed to get data from Foursquare, minimal data will be show in InfoWindow");
       }
     })
     .then(() => this.setState({
@@ -179,7 +185,11 @@ class App extends Component {
     map.setCenter(location.position)
     // Open up the infoWindow
     selectedMarker.setAnimation(google.maps.Animation.BOUNCE)
-    infoWindow.setContent(location.infoWindowContent)
+    if(location.infoWindowContent !== null){
+      infoWindow.setContent(location.infoWindowContent)
+    } else {
+      infoWindow.setContent(`<div className=""><h3 id="info-window-heading" tabIndex="0">${location.title}</h3><p tabindex="0">Foursquare information unavailable, try checking the <a href="https://foursquare.com/v/${location.venueId}">website for more details</a></div>`)
+    }
     infoWindow.open(map, selectedMarker)
   }
 
@@ -239,7 +249,6 @@ class App extends Component {
   }
 
   generateInfoWindowContent(data, location){
-    console.log(data);
     let content = (<div>
         <div id="info-window-div" className="venue-data">
           {data && <div className="venue-title"><h2 id="info-window-heading" tabIndex="0"><a href={`https://foursquare.com/v/${location.venueId}`}>{data.venue.name}</a></h2></div>}
@@ -314,7 +323,7 @@ class App extends Component {
   }
 
   render() {
-    let {queryValue, venueFromFoursquare} = this.state
+    let {queryValue} = this.state
 
     return (
       <div className="app-container">
