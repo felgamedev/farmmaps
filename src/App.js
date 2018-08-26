@@ -12,23 +12,6 @@ const fourSquareConfig = {
 }
 
 // Global map variable
-var map, markers, bounds, infoWindow
-
-// const MapInfoWindow = (props) => {
-//   return (<InfoWindow>
-//     <div>
-//       <div className="venue-data" tabIndex="1">
-//         {props.venueData && <div className="venue-title"><h2><a href={`https://foursquare.com/v/${props.location.venueId}`}>{props.venueData.venue.name}</a></h2></div>}
-//         {props.venueData && <div className="venue-description"><span className="venue-rating">Average rating: {props.venueData.venue.rating}</span></div>}
-//         {props.venueData && <address>
-//           <p>{props.venueData.venue.location.address}, {props.venueData.venue.location.city}</p>
-//         </address>}
-//         {props.venueData && <p>{props.venueData.venue.contact.formattedPhone}</p>}
-//       </div>
-//
-//     </div>
-//     </InfoWindow>)
-// }
 
 class App extends Component {
   state = {
@@ -56,11 +39,6 @@ class App extends Component {
     fetch(`https://api.foursquare.com/v2/venues/${location.venueId}?&client_id=${fourSquareConfig.secrets.clientId}&client_secret=${fourSquareConfig.secrets.clientSecret}&v=20180821`)
     .then(res => res.json())
     .then(data => this.setState({venueFromFoursquare: data.response}))
-
-    // Get a photo if there is one
-    // fetch(`https://api.foursquare.com/v2/venues/${location.venueId}/photos?&client_id=${fourSquareConfig.secrets.clientId}&client_secret=${fourSquareConfig.secrets.clientSecret}&v=20180821`)
-    // .then(res => res.json())
-    // .then()
   }
 
   componentWillMount(){
